@@ -140,7 +140,7 @@ export default function Detalle({ post, profile, onClose, onChanged, onEdit, onD
                 </button>
                 {post.status === 'borrador' ? (
                   <button
-                    className="btn btn-sm btn-rojo"
+                    className="btn btn-sm btn-primario"
                     type="button"
                     onClick={enviarARevision}
                     disabled={trabajando}
@@ -257,7 +257,7 @@ export default function Detalle({ post, profile, onClose, onChanged, onEdit, onD
 
                 {post.status !== 'rechazado' ? (
                   <button
-                    className="btn btn-sm btn-rojo"
+                    className="btn btn-sm btn-rechazo"
                     type="button"
                     onClick={() => {
                       if (!modoRechazo) {

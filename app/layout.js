@@ -16,7 +16,7 @@ const cuerpo = Barlow({
 })
 
 export const metadata = {
-  title: 'TATO MOTOS · Panel de contenido',
+  title: 'Marco Liendo · Gestión RRSS',
   description:
     'Panel donde el equipo publica el contenido planificado del mes y el cliente lo revisa y aprueba.',
 }

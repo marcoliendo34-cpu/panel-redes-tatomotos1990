@@ -1,6 +1,7 @@
 /* ============================================================
-   TATO MOTOS — Panel de contenido
-   Paleta: asfalto de noche, cromo del logo, rojo de zona roja.
+   Panel de contenido — Marco Liendo Gestión RRSS
+   Identidad: negro y blanco. El único color del panel es el de
+   los testigos de estado, que ahí sí significa algo.
    ============================================================ */
 
 :root {
@@ -11,16 +12,16 @@
   --linea: #26262f;
   --linea-fuerte: #3a3a46;
 
-  --rojo: #e10600;
-  --rojo-vivo: #ff2d20;
-  --rojo-tenue: rgba(225, 6, 0, 0.14);
-
-  --cromo: #edeef2;
+  --cromo: #f4f4f7;
   --humo: #8c8c99;
   --humo-tenue: #5c5c68;
 
+  /* Señales de estado. No son marca: son información. */
   --verde: #2fbf71;
   --ambar: #f0a202;
+  --rojo: #e10600;
+  --rojo-vivo: #ff2d20;
+  --rojo-tenue: rgba(225, 6, 0, 0.14);
 
   --radio: 4px;
   --radio-grande: 8px;
@@ -43,10 +44,10 @@ body {
 }
 
 body {
-  /* Textura sutil de asfalto: dos degradados muy tenues, nada de imágenes. */
+  /* Dos luces muy tenues, sin color: dan profundidad al negro plano. */
   background-image:
-    radial-gradient(900px 500px at 12% -10%, rgba(225, 6, 0, 0.09), transparent 60%),
-    radial-gradient(700px 400px at 100% 0%, rgba(255, 255, 255, 0.035), transparent 55%);
+    radial-gradient(900px 500px at 12% -10%, rgba(255, 255, 255, 0.055), transparent 60%),
+    radial-gradient(700px 400px at 100% 0%, rgba(255, 255, 255, 0.03), transparent 55%);
   background-attachment: fixed;
   min-height: 100vh;
 }
@@ -68,7 +69,7 @@ button {
 }
 
 :focus-visible {
-  outline: 2px solid var(--rojo-vivo);
+  outline: 2px solid var(--cromo);
   outline-offset: 2px;
 }
 
@@ -112,13 +113,24 @@ button {
   cursor: not-allowed;
 }
 
-.btn-rojo {
+.btn-primario {
+  background: var(--cromo);
+  border-color: var(--cromo);
+  color: var(--negro);
+}
+
+.btn-primario:hover:not(:disabled) {
+  background: #ffffff;
+  border-color: #ffffff;
+}
+
+.btn-rechazo {
   background: var(--rojo);
   border-color: var(--rojo);
   color: #fff;
 }
 
-.btn-rojo:hover:not(:disabled) {
+.btn-rechazo:hover:not(:disabled) {
   background: var(--rojo-vivo);
   border-color: var(--rojo-vivo);
 }
@@ -153,7 +165,7 @@ button {
 }
 
 .campo:focus {
-  border-color: var(--rojo);
+  border-color: var(--cromo);
   outline: none;
 }
 
@@ -255,10 +267,9 @@ select.campo {
 }
 
 .login-marca img {
-  width: 84px;
-  height: 84px;
+  width: 190px;
+  height: auto;
   object-fit: contain;
-  filter: drop-shadow(0 0 22px rgba(225, 6, 0, 0.5));
 }
 
 .login-marca h1 {
@@ -278,7 +289,7 @@ select.campo {
 .login-form {
   background: var(--carbon);
   border: 1px solid var(--linea);
-  border-top: 2px solid var(--rojo);
+  border-top: 2px solid var(--cromo);
   border-radius: var(--radio-grande);
   padding: 26px 24px 24px;
   display: flex;
@@ -321,10 +332,26 @@ select.campo {
 }
 
 .barra-marca img {
-  width: 40px;
-  height: 40px;
+  width: auto;
+  height: 26px;
   object-fit: contain;
   flex: none;
+}
+
+/* Marca cuyo contenido se está gestionando: se lee como una placa,
+   separada de la identidad de la agencia por una línea vertical. */
+.marca-gestionada {
+  margin-left: 4px;
+  padding-left: 14px;
+  border-left: 1px solid var(--linea-fuerte);
+  font-family: var(--fuente-titulo), sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--humo);
+  line-height: 1.3;
+  max-width: 180px;
 }
 
 .barra-marca .nombre {
@@ -370,7 +397,7 @@ select.campo {
   font-size: 10px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--rojo-vivo);
+  color: var(--cromo);
   font-weight: 700;
 }
 
@@ -535,8 +562,8 @@ select.campo {
 }
 
 .conmutador button.activo {
-  background: var(--rojo);
-  color: #fff;
+  background: var(--cromo);
+  color: var(--negro);
 }
 
 .filtros {
@@ -623,8 +650,8 @@ select.campo {
 }
 
 .cal-dia.hoy .cal-num {
-  color: #fff;
-  background: var(--rojo);
+  color: var(--negro);
+  background: var(--cromo);
   border-radius: 3px;
   padding: 1px 6px;
   align-self: flex-start;
@@ -831,7 +858,7 @@ select.campo {
   max-width: 860px;
   background: var(--carbon);
   border: 1px solid var(--linea-fuerte);
-  border-top: 2px solid var(--rojo);
+  border-top: 2px solid var(--cromo);
   border-radius: var(--radio-grande);
   margin: auto;
 }
@@ -992,11 +1019,11 @@ select.campo {
 }
 
 .mensaje.de-agencia {
-  border-left-color: var(--cromo);
+  border-left-color: var(--humo-tenue);
 }
 
 .mensaje.de-cliente {
-  border-left-color: var(--rojo);
+  border-left-color: var(--cromo);
 }
 
 .mensaje .quien {
@@ -1168,6 +1195,10 @@ select.campo {
 @media (max-width: 520px) {
   .app {
     padding: 0 14px 60px;
+  }
+
+  .marca-gestionada {
+    display: none;
   }
 
   .lectura .cifra {

@@ -113,16 +113,27 @@ export default function PanelClient({ profile, brands, email }) {
     return true
   })
 
+  // Nombre de la marca cuyo contenido se está viendo, para mostrarlo
+  // junto al logo de la agencia.
+  const marcaActual = (() => {
+    if (profile.brand_id) {
+      const b = brands.find((x) => x.id === profile.brand_id)
+      if (b) return b.name
+    }
+    return brands.length === 1 ? brands[0].name : null
+  })()
+
   return (
     <main className="app">
       <header className="barra">
         <div className="barra-marca">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="" />
+          <img src="/logo-marco.png" alt="Marco Liendo · Gestión RRSS" />
           <div>
-            <div className="nombre">TATO MOTOS 1990</div>
-            <div className="sub">Panel de contenido</div>
+            <div className="nombre">Marco Liendo</div>
+            <div className="sub">Gestión RRSS</div>
           </div>
+          {marcaActual ? <div className="marca-gestionada">{marcaActual}</div> : null}
         </div>
 
         <div className="barra-derecha">
@@ -167,7 +178,7 @@ export default function PanelClient({ profile, brands, email }) {
 
         {esAgencia ? (
           <button
-            className="btn btn-rojo btn-sm"
+            className="btn btn-primario btn-sm"
             type="button"
             onClick={() => setEditando('nueva')}
           >
@@ -228,7 +239,7 @@ export default function PanelClient({ profile, brands, email }) {
           </p>
           {esAgencia && posts.length === 0 ? (
             <button
-              className="btn btn-rojo"
+              className="btn btn-primario"
               type="button"
               onClick={() => setEditando('nueva')}
             >

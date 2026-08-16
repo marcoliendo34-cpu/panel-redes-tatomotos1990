@@ -1,8 +1,13 @@
-# Panel de contenido · TATO MOTOS 1990 C.A.
+# Panel de contenido · Marco Liendo Gestión RRSS
 
 Panel web donde la agencia sube el contenido planificado del mes y el cliente lo
 revisa, aprueba, rechaza o comenta antes de que se publique. Reemplaza el flujo
 de aprobación por WhatsApp, donde las decisiones se pierden entre mensajes.
+
+La marca visible del panel es la de la agencia. Cada cliente que se dé de alta
+ve el contenido de su propia marca y nada más; el nombre de esa marca aparece
+en la cabecera, junto al logo de la agencia. El primer cliente configurado es
+TATO MOTOS 1990 C.A.
 
 ## Qué hace
 

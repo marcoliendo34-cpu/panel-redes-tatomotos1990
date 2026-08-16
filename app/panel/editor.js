@@ -288,7 +288,7 @@ export default function Editor({ post, profile, brands, onClose, onSaved }) {
             <button className="btn izq" type="button" onClick={onClose}>
               Cancelar
             </button>
-            <button className="btn btn-rojo" type="submit" disabled={guardando || subiendo}>
+            <button className="btn btn-primario" type="submit" disabled={guardando || subiendo}>
               {guardando ? 'Guardando…' : esNueva ? 'Crear pieza' : 'Guardar cambios'}
             </button>
           </div>

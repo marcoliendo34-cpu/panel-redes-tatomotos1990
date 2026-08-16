@@ -1,7 +1,7 @@
 import LoginForm from './login-form'
 
 export const metadata = {
-  title: 'Entrar · TATO MOTOS',
+  title: 'Entrar · Marco Liendo Gestión RRSS',
 }
 
 export default function LoginPage() {
@@ -10,10 +10,10 @@ export default function LoginPage() {
       <div className="login-card">
         <div className="login-marca">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="TATO MOTOS 1990 C.A." />
+          <img src="/logo-marco.png" alt="Marco Liendo · Gestión RRSS" />
           <div>
             <h1>Panel de contenido</h1>
-            <p>TATO MOTOS 1990 C.A.</p>
+            <p>Marco Liendo · Gestión RRSS</p>
           </div>
         </div>
 

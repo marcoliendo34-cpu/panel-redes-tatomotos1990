@@ -72,7 +72,7 @@ export default function LoginForm() {
 
       {error ? <div className="aviso aviso-error">{error}</div> : null}
 
-      <button className="btn btn-rojo" type="submit" disabled={cargando}>
+      <button className="btn btn-primario" type="submit" disabled={cargando}>
         {cargando ? 'Entrando…' : 'Entrar'}
       </button>
     </form>
