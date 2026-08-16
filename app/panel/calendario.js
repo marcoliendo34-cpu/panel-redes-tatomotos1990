@@ -49,9 +49,9 @@ export default function Calendario({ posts, year, monthIndex, onOpen }) {
                       onClick={() => onOpen(p)}
                       style={{ borderLeftColor: STATUS_LAMP[p.status] }}
                     >
-                      {p.media_url && p.media_type === 'imagen' ? (
+                      {p.vista_url && p.media_type === 'imagen' ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img className="mini" src={p.media_url} alt="" />
+                        <img className="mini" src={p.vista_url} alt="" />
                       ) : (
                         <span className="mini-vacio" />
                       )}

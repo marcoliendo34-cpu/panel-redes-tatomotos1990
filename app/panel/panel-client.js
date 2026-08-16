@@ -22,6 +22,8 @@ export default function PanelClient({ profile, brands, email }) {
   const [vista, setVista] = useState('calendario')
   const [filtroEstado, setFiltroEstado] = useState('todos')
   const [filtroRed, setFiltroRed] = useState('todas')
+  // Cliente cuyo contenido se está viendo. Solo la agencia puede cambiarlo.
+  const [filtroMarca, setFiltroMarca] = useState('todas')
 
   const [posts, setPosts] = useState([])
   const [cargando, setCargando] = useState(true)
@@ -44,20 +46,44 @@ export default function PanelClient({ profile, brands, email }) {
       .lt('scheduled_at', hasta.toISOString())
       .order('scheduled_at', { ascending: true })
 
-    setCargando(false)
-
     if (err) {
+      setCargando(false)
       setError(`No se pudo cargar el contenido: ${err.message}`)
       setPosts([])
       return
     }
 
-    setPosts(data || [])
+    const filas = data || []
+
+    // El almacén es privado: cada imagen necesita un enlace temporal
+    // (1 hora) que solo funciona para quien tiene permiso de verla.
+    const rutas = filas.map((p) => p.media_path).filter(Boolean)
+    const mapaUrls = {}
+
+    if (rutas.length > 0) {
+      const { data: firmadas } = await supabase.storage
+        .from('contenido')
+        .createSignedUrls(rutas, 3600)
+
+      if (firmadas) {
+        firmadas.forEach((f) => {
+          if (f.signedUrl && !f.error) mapaUrls[f.path] = f.signedUrl
+        })
+      }
+    }
+
+    const conVista = filas.map((p) => ({
+      ...p,
+      vista_url: p.media_path ? mapaUrls[p.media_path] || null : null,
+    }))
+
+    setCargando(false)
+    setPosts(conVista)
 
     // Si hay una pieza abierta, la refrescamos con los datos nuevos.
     setSeleccionada((actual) => {
       if (!actual) return null
-      return (data || []).find((p) => p.id === actual.id) || null
+      return conVista.find((p) => p.id === actual.id) || null
     })
   }, [year, monthIndex, supabase])
 
@@ -107,21 +133,39 @@ export default function PanelClient({ profile, brands, email }) {
     await cargar()
   }
 
-  const visibles = posts.filter((p) => {
+  // El filtro de marca solo aplica a la agencia. Un cliente ya viene
+  // limitado a su marca por la base de datos, no por esta pantalla.
+  const porMarca = esAgencia && filtroMarca !== 'todas'
+    ? posts.filter((p) => p.brand_id === filtroMarca)
+    : posts
+
+  const visibles = porMarca.filter((p) => {
     if (filtroEstado !== 'todos' && p.status !== filtroEstado) return false
     if (filtroRed !== 'todas' && p.network !== filtroRed) return false
     return true
   })
 
-  // Nombre de la marca cuyo contenido se está viendo, para mostrarlo
-  // junto al logo de la agencia.
-  const marcaActual = (() => {
-    if (profile.brand_id) {
-      const b = brands.find((x) => x.id === profile.brand_id)
-      if (b) return b.name
-    }
-    return brands.length === 1 ? brands[0].name : null
+  const nombreDeMarca = (id) => {
+    const b = brands.find((x) => x.id === id)
+    return b ? b.name : null
+  }
+
+  // Nombre y logo del cliente que aparecen junto a la marca de la agencia.
+  const marcaEnCabecera = (() => {
+    const porId = (id) => brands.find((x) => x.id === id) || null
+    if (!esAgencia) return porId(profile.brand_id)
+    if (filtroMarca !== 'todas') return porId(filtroMarca)
+    return brands.length === 1 ? brands[0] : null
   })()
+
+  const marcaActual = marcaEnCabecera
+    ? marcaEnCabecera.name
+    : esAgencia
+      ? 'Todos los clientes'
+      : null
+
+  // Cuando se ven varias marcas a la vez, cada pieza necesita decir de quién es.
+  const mostrarMarcaEnPiezas = esAgencia && filtroMarca === 'todas' && brands.length > 1
 
   return (
     <main className="app">
@@ -133,7 +177,15 @@ export default function PanelClient({ profile, brands, email }) {
             <div className="nombre">Marco Liendo</div>
             <div className="sub">Gestión RRSS</div>
           </div>
-          {marcaActual ? <div className="marca-gestionada">{marcaActual}</div> : null}
+          {marcaActual ? (
+            <div className="marca-gestionada">
+              {marcaEnCabecera && marcaEnCabecera.logo_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={marcaEnCabecera.logo_url} alt="" className="logo-cliente" />
+              ) : null}
+              <span>{marcaActual}</span>
+            </div>
+          ) : null}
         </div>
 
         <div className="barra-derecha">
@@ -150,7 +202,7 @@ export default function PanelClient({ profile, brands, email }) {
       </header>
 
       <Tablero
-        posts={posts}
+        posts={porMarca}
         year={year}
         monthIndex={monthIndex}
         onPrev={mesAnterior}
@@ -187,6 +239,22 @@ export default function PanelClient({ profile, brands, email }) {
         ) : null}
 
         <div className="filtros">
+          {esAgencia && brands.length > 1 ? (
+            <select
+              className="campo campo-marca"
+              value={filtroMarca}
+              onChange={(e) => setFiltroMarca(e.target.value)}
+              aria-label="Filtrar por cliente"
+            >
+              <option value="todas">Todos los clientes</option>
+              {brands.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+          ) : null}
+
           <select
             className="campo"
             value={filtroEstado}
@@ -255,13 +323,20 @@ export default function PanelClient({ profile, brands, email }) {
           onOpen={setSeleccionada}
         />
       ) : (
-        <Lista posts={visibles} onOpen={setSeleccionada} />
+        <Lista
+          posts={visibles}
+          onOpen={setSeleccionada}
+          nombreDeMarca={mostrarMarcaEnPiezas ? nombreDeMarca : null}
+        />
       )}
 
       {seleccionada ? (
         <Detalle
           post={seleccionada}
           profile={profile}
+          marcaNombre={
+            esAgencia && brands.length > 1 ? nombreDeMarca(seleccionada.brand_id) : null
+          }
           onClose={() => setSeleccionada(null)}
           onChanged={cargar}
           onEdit={(p) => {
@@ -277,6 +352,7 @@ export default function PanelClient({ profile, brands, email }) {
           post={editando === 'nueva' ? null : editando}
           profile={profile}
           brands={brands}
+          marcaPorDefecto={filtroMarca !== 'todas' ? filtroMarca : null}
           onClose={() => setEditando(null)}
           onSaved={async () => {
             setEditando(null)

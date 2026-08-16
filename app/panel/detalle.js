@@ -9,7 +9,15 @@ import {
   formatLongDate,
 } from '@/lib/constants'
 
-export default function Detalle({ post, profile, onClose, onChanged, onEdit, onDelete }) {
+export default function Detalle({
+  post,
+  profile,
+  marcaNombre,
+  onClose,
+  onChanged,
+  onEdit,
+  onDelete,
+}) {
   const supabase = useMemo(() => createClient(), [])
   const esAgencia = profile.role === 'agencia'
 
@@ -101,11 +109,11 @@ export default function Detalle({ post, profile, onClose, onChanged, onEdit, onD
 
         <div className="modal-cuerpo">
           <div className="modal-media">
-            {post.media_url && post.media_type === 'video' ? (
-              <video src={post.media_url} controls playsInline />
-            ) : post.media_url ? (
+            {post.vista_url && post.media_type === 'video' ? (
+              <video src={post.vista_url} controls playsInline />
+            ) : post.vista_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={post.media_url} alt={post.title} />
+              <img src={post.vista_url} alt={post.title} />
             ) : (
               <div className="sin-media">Esta pieza todavía no tiene arte cargado.</div>
             )}
@@ -113,6 +121,12 @@ export default function Detalle({ post, profile, onClose, onChanged, onEdit, onD
 
           <div>
             <div className="datos">
+              {marcaNombre ? (
+                <div className="dato">
+                  <div className="k">Cliente</div>
+                  <div className="v">{marcaNombre}</div>
+                </div>
+              ) : null}
               <div className="dato">
                 <div className="k">Red social</div>
                 <div className="v">{NETWORK_LABEL[post.network] || post.network}</div>

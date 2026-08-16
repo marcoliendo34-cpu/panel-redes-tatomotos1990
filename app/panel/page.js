@@ -42,7 +42,7 @@ export default async function PanelPage() {
 
   const { data: brands } = await supabase
     .from('brands')
-    .select('id, name, slug')
+    .select('id, name, slug, logo_url')
     .order('created_at')
 
   return (

@@ -7,7 +7,7 @@ import {
   formatDateTime,
 } from '@/lib/constants'
 
-export default function Lista({ posts, onOpen }) {
+export default function Lista({ posts, onOpen, nombreDeMarca }) {
   const ordenadas = [...posts].sort(
     (a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at)
   )
@@ -22,9 +22,9 @@ export default function Lista({ posts, onOpen }) {
           onClick={() => onOpen(p)}
           style={{ borderLeftColor: STATUS_LAMP[p.status] }}
         >
-          {p.media_url && p.media_type === 'imagen' ? (
+          {p.vista_url && p.media_type === 'imagen' ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img className="foto" src={p.media_url} alt="" />
+            <img className="foto" src={p.vista_url} alt="" />
           ) : (
             <span className="foto-vacia">
               {p.media_type === 'video' ? 'Video' : 'Sin arte'}
@@ -32,6 +32,9 @@ export default function Lista({ posts, onOpen }) {
           )}
 
           <span className="cuerpo">
+            {nombreDeMarca && nombreDeMarca(p.brand_id) ? (
+              <span className="de-quien">{nombreDeMarca(p.brand_id)}</span>
+            ) : null}
             <span className="titulo">{p.title}</span>
             <span className="copy">{p.copy || 'Sin copy todavía.'}</span>
           </span>

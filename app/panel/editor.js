@@ -11,12 +11,22 @@ import {
 
 const BUCKET = 'contenido'
 
-export default function Editor({ post, profile, brands, onClose, onSaved }) {
+export default function Editor({
+  post,
+  profile,
+  brands,
+  marcaPorDefecto,
+  onClose,
+  onSaved,
+}) {
   const supabase = useMemo(() => createClient(), [])
   const esNueva = !post
 
   const brandInicial =
-    post?.brand_id || profile.brand_id || (brands[0] ? brands[0].id : null)
+    post?.brand_id ||
+    marcaPorDefecto ||
+    profile.brand_id ||
+    (brands[0] ? brands[0].id : null)
 
   const [form, setForm] = useState({
     brand_id: brandInicial,
@@ -25,10 +35,13 @@ export default function Editor({ post, profile, brands, onClose, onSaved }) {
     network: post?.network || 'instagram',
     status: post?.status || 'borrador',
     scheduled_at: toLocalInput(post?.scheduled_at),
-    media_url: post?.media_url || '',
     media_path: post?.media_path || '',
     media_type: post?.media_type || null,
   })
+
+  // Enlace temporal solo para ver la vista previa aquí dentro.
+  // Nunca se guarda en la base de datos: caduca en una hora.
+  const [vistaPrevia, setVistaPrevia] = useState(post?.vista_url || '')
 
   const [subiendo, setSubiendo] = useState(false)
   const [guardando, setGuardando] = useState(false)
@@ -69,14 +82,17 @@ export default function Editor({ post, profile, brands, onClose, onSaved }) {
       return
     }
 
-    const { data } = supabase.storage.from(BUCKET).getPublicUrl(nombre)
+    // El almacén es privado, así que pedimos un enlace temporal para la vista previa.
+    const { data: firmada } = await supabase.storage
+      .from(BUCKET)
+      .createSignedUrl(nombre, 3600)
 
     setForm((f) => ({
       ...f,
-      media_url: data.publicUrl,
       media_path: nombre,
       media_type: file.type.startsWith('video') ? 'video' : 'imagen',
     }))
+    setVistaPrevia(firmada?.signedUrl || '')
     setSubiendo(false)
     e.target.value = ''
   }
@@ -85,7 +101,8 @@ export default function Editor({ post, profile, brands, onClose, onSaved }) {
     if (form.media_path) {
       await supabase.storage.from(BUCKET).remove([form.media_path])
     }
-    setForm((f) => ({ ...f, media_url: '', media_path: '', media_type: null }))
+    setForm((f) => ({ ...f, media_path: '', media_type: null }))
+    setVistaPrevia('')
   }
 
   async function guardar(e) {
@@ -110,7 +127,8 @@ export default function Editor({ post, profile, brands, onClose, onSaved }) {
       network: form.network,
       status: form.status,
       scheduled_at: fromLocalInput(form.scheduled_at),
-      media_url: form.media_url || null,
+      // Guardamos la ruta, no el enlace: los enlaces caducan a la hora.
+      media_url: null,
       media_path: form.media_path || null,
       media_type: form.media_type,
     }
@@ -147,11 +165,13 @@ export default function Editor({ post, profile, brands, onClose, onSaved }) {
 
         <form className="editor" onSubmit={guardar}>
           <div className="subida">
-            {form.media_url && form.media_type === 'imagen' ? (
+            {vistaPrevia && form.media_type === 'imagen' ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img className="previo" src={form.media_url} alt="" />
-            ) : form.media_url ? (
-              <span className="previo-vacio">Video cargado</span>
+              <img className="previo" src={vistaPrevia} alt="" />
+            ) : form.media_path ? (
+              <span className="previo-vacio">
+                {form.media_type === 'video' ? 'Video cargado' : 'Archivo cargado'}
+              </span>
             ) : (
               <span className="previo-vacio">Sin arte</span>
             )}
@@ -163,7 +183,7 @@ export default function Editor({ post, profile, brands, onClose, onSaved }) {
               </p>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <label className="btn btn-sm" style={{ cursor: 'pointer' }}>
-                  {subiendo ? 'Subiendo…' : form.media_url ? 'Cambiar archivo' : 'Subir archivo'}
+                  {subiendo ? 'Subiendo…' : form.media_path ? 'Cambiar archivo' : 'Subir archivo'}
                   <input
                     type="file"
                     accept="image/*,video/*"
@@ -172,7 +192,7 @@ export default function Editor({ post, profile, brands, onClose, onSaved }) {
                     style={{ display: 'none' }}
                   />
                 </label>
-                {form.media_url ? (
+                {form.media_path ? (
                   <button className="btn btn-sm" type="button" onClick={quitarArchivo}>
                     Quitar
                   </button>
