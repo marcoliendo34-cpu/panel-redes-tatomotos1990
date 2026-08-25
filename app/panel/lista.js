@@ -1,7 +1,7 @@
 'use client'
 
 import {
-  NETWORK_LABEL,
+  redesTexto,
   STATUS_LABEL,
   STATUS_LAMP,
   formatDateTime,
@@ -45,7 +45,7 @@ export default function Lista({ posts, onOpen, nombreDeMarca }) {
               <span style={{ color: 'var(--cromo)' }}>{STATUS_LABEL[p.status]}</span>
             </span>
             <span className="cuando">
-              {NETWORK_LABEL[p.network] || p.network} · {formatDateTime(p.scheduled_at)}
+              {redesTexto(p)} · {formatDateTime(p.scheduled_at)}
             </span>
           </span>
         </button>

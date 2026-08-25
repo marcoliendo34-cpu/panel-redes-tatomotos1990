@@ -32,7 +32,12 @@ export default function Editor({
     brand_id: brandInicial,
     title: post?.title || '',
     copy: post?.copy || '',
-    network: post?.network || 'instagram',
+    networks:
+      Array.isArray(post?.networks) && post.networks.length > 0
+        ? post.networks
+        : post?.network
+          ? [post.network]
+          : ['instagram'],
     status: post?.status || 'borrador',
     scheduled_at: toLocalInput(post?.scheduled_at),
     media_path: post?.media_path || '',
@@ -59,16 +64,38 @@ export default function Editor({
     setForm((f) => ({ ...f, [campo]: valor }))
   }
 
+  // Marca o desmarca una red. Nunca deja la lista vacía: si intentas
+  // quitar la última, se queda puesta.
+  function alternarRed(valor) {
+    setForm((f) => {
+      const puesta = f.networks.includes(valor)
+      if (puesta && f.networks.length === 1) return f
+      return {
+        ...f,
+        networks: puesta
+          ? f.networks.filter((r) => r !== valor)
+          : [...f.networks, valor],
+      }
+    })
+  }
+
   async function subirArchivo(e) {
     const file = e.target.files && e.target.files[0]
     if (!file) return
+
+    // La carpeta decide quién puede ver el archivo, así que sin marca
+    // no se sube nada: quedaría en tierra de nadie.
+    if (!form.brand_id) {
+      setError('Elige primero el cliente al que pertenece la pieza.')
+      e.target.value = ''
+      return
+    }
 
     setError('')
     setSubiendo(true)
 
     const extension = (file.name.split('.').pop() || 'bin').toLowerCase()
-    const carpeta = form.brand_id || 'general'
-    const nombre = `${carpeta}/${Date.now()}-${Math.random()
+    const nombre = `${form.brand_id}/${Date.now()}-${Math.random()
       .toString(36)
       .slice(2, 9)}.${extension}`
 
@@ -95,6 +122,40 @@ export default function Editor({
     setVistaPrevia(firmada?.signedUrl || '')
     setSubiendo(false)
     e.target.value = ''
+  }
+
+  // Si se cambia de cliente con un archivo ya subido, hay que MOVERLO.
+  // Si no, el archivo se queda en la carpeta del cliente anterior y los
+  // permisos de lectura apuntarían a quien no debe.
+  async function cambiarMarca(nuevaMarca) {
+    if (!form.media_path) {
+      set('brand_id', nuevaMarca)
+      return
+    }
+
+    setError('')
+    setSubiendo(true)
+
+    const archivo = form.media_path.split('/').pop()
+    const nuevaRuta = `${nuevaMarca}/${archivo}`
+
+    const { error: errMover } = await supabase.storage
+      .from(BUCKET)
+      .move(form.media_path, nuevaRuta)
+
+    if (errMover) {
+      setSubiendo(false)
+      setError(`No se pudo mover el archivo al nuevo cliente: ${errMover.message}`)
+      return
+    }
+
+    const { data: firmada } = await supabase.storage
+      .from(BUCKET)
+      .createSignedUrl(nuevaRuta, 3600)
+
+    setForm((f) => ({ ...f, brand_id: nuevaMarca, media_path: nuevaRuta }))
+    setVistaPrevia(firmada?.signedUrl || '')
+    setSubiendo(false)
   }
 
   async function quitarArchivo() {
@@ -124,7 +185,7 @@ export default function Editor({
       brand_id: form.brand_id,
       title: form.title.trim(),
       copy: form.copy,
-      network: form.network,
+      networks: form.networks,
       status: form.status,
       scheduled_at: fromLocalInput(form.scheduled_at),
       // Guardamos la ruta, no el enlace: los enlaces caducan a la hora.
@@ -228,25 +289,31 @@ export default function Editor({
             />
           </div>
 
-          <div className="editor-fila">
-            <div>
-              <label className="etiqueta" htmlFor="red">
-                Red social
-              </label>
-              <select
-                id="red"
-                className="campo"
-                value={form.network}
-                onChange={(e) => set('network', e.target.value)}
-              >
-                {NETWORKS.map((n) => (
-                  <option key={n.value} value={n.value}>
+          <div>
+            <span className="etiqueta">Redes sociales</span>
+            <div className="redes-picker" role="group" aria-label="Redes sociales">
+              {NETWORKS.map((n) => {
+                const activa = form.networks.includes(n.value)
+                return (
+                  <button
+                    key={n.value}
+                    type="button"
+                    className={`red-chip${activa ? ' activa' : ''}`}
+                    aria-pressed={activa}
+                    onClick={() => alternarRed(n.value)}
+                  >
                     {n.label}
-                  </option>
-                ))}
-              </select>
+                  </button>
+                )
+              })}
             </div>
+            <p className="ayuda">
+              Puedes marcar varias. La pieza aparece una sola vez y el cliente la
+              aprueba una sola vez.
+            </p>
+          </div>
 
+          <div className="editor-fila">
             <div>
               <label className="etiqueta" htmlFor="fecha">
                 Fecha y hora de publicación
@@ -290,7 +357,8 @@ export default function Editor({
                   id="marca"
                   className="campo"
                   value={form.brand_id || ''}
-                  onChange={(e) => set('brand_id', e.target.value)}
+                  onChange={(e) => cambiarMarca(e.target.value)}
+                  disabled={subiendo}
                 >
                   {brands.map((b) => (
                     <option key={b.id} value={b.id}>

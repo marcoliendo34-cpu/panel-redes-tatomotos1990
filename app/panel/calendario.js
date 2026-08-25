@@ -2,7 +2,7 @@
 
 import {
   WEEKDAYS,
-  NETWORK_LABEL,
+  redesTexto,
   STATUS_LAMP,
   buildMonthGrid,
   sameDay,
@@ -63,7 +63,7 @@ export default function Calendario({ posts, year, monthIndex, onOpen }) {
                             minute: '2-digit',
                           })}
                           {' · '}
-                          {NETWORK_LABEL[p.network] || p.network}
+                          {redesTexto(p)}
                         </span>
                       </span>
                     </button>

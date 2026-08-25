@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { NETWORKS, STATUSES } from '@/lib/constants'
+import { NETWORKS, STATUSES, redesDe } from '@/lib/constants'
 import Tablero from './tablero'
 import Calendario from './calendario'
 import Lista from './lista'
@@ -141,7 +141,7 @@ export default function PanelClient({ profile, brands, email }) {
 
   const visibles = porMarca.filter((p) => {
     if (filtroEstado !== 'todos' && p.status !== filtroEstado) return false
-    if (filtroRed !== 'todas' && p.network !== filtroRed) return false
+    if (filtroRed !== 'todas' && !redesDe(p).includes(filtroRed)) return false
     return true
   })
 

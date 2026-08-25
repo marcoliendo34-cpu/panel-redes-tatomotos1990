@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
-  NETWORK_LABEL,
+  redesTexto,
   STATUS_LABEL,
   STATUS_LAMP,
   formatLongDate,
@@ -128,8 +128,8 @@ export default function Detalle({
                 </div>
               ) : null}
               <div className="dato">
-                <div className="k">Red social</div>
-                <div className="v">{NETWORK_LABEL[post.network] || post.network}</div>
+                <div className="k">Redes</div>
+                <div className="v">{redesTexto(post)}</div>
               </div>
               <div className="dato">
                 <div className="k">Publicación</div>
